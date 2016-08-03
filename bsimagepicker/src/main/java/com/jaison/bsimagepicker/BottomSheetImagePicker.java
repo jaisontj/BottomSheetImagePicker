@@ -295,7 +295,7 @@ public class BottomSheetImagePicker {
 
                     //Check if the user has opted for the Never Show Again flag
                     if (!ActivityCompat.shouldShowRequestPermissionRationale(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                        showMessageOKCancel("Levo only accesses your storage to show your photos here.But you have denied permission to it. Please enable it in Settings>Apps>Levo>Permissions>Storage",
+                        showMessageOKCancel(getAppName().concat(" only accesses your storage to show your photos here.Please enable it in Settings>Apps>Levo>Permissions>Storage"),
                                 new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
@@ -303,7 +303,7 @@ public class BottomSheetImagePicker {
                                     }
                                 });
                     } else
-                        showMessageOKCancel("Levo only accesses your storage to show your photos here. Would you like to try again?",
+                        showMessageOKCancel(getAppName().concat(" only accesses your storage to show your photos here. Would you like to try again?"),
                                 new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
@@ -319,7 +319,7 @@ public class BottomSheetImagePicker {
                 } else {
                     //Check if the user has opted for the Never Show Again flag
                     if (!ActivityCompat.shouldShowRequestPermissionRationale(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                        showMessageOKCancel("You cannot take a picture unless you provide Levo with the permission to use the Camera.But you have denied permission to it. Please enable it in Settings>Apps>Levo>Permissions>Camera",
+                        showMessageOKCancel("You cannot take a picture unless you provide ".concat(getAppName()).concat(" with the permission to use the Camera.Please enable it in Settings>Apps>".concat(getAppName()).concat(">Permissions>Camera")),
                                 new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
@@ -327,7 +327,7 @@ public class BottomSheetImagePicker {
                                     }
                                 });
                     } else
-                        showMessageOKCancel("You cannot take a picture unless you provide Levo with the permission to use the Camera. Would you like to try again?",
+                        showMessageOKCancel("You cannot take a picture unless you provide ".concat(getAppName()).concat(" with the permission to use the Camera. Would you like to try again?"),
                                 new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
@@ -362,5 +362,9 @@ public class BottomSheetImagePicker {
                 .setNegativeButton("Cancel", null)
                 .create()
                 .show();
+    }
+
+    private String getAppName() {
+        return getActivity().getResources().getString(R.string.app_name);
     }
 }
