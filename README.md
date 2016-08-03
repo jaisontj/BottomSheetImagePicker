@@ -39,7 +39,7 @@ You will get the selected Image URI in the listener callBack
 Step 6: 
 Make sure to call the destroy method inside of the onDestroy method of the activity -> This is important to avoid leaking memory
 
-EXTRA :
+# EXTRA :
 
 There are three types/modes which can be set for the BottomSheetImagePicker :
 
@@ -54,7 +54,7 @@ BottomSheetImagePicker.getInstance().showImagePicker(BottomSheetImagePicker.Pick
 ```
 
 
-BOILER PLATE CODE :
+# BOILER PLATE CODE :
 
 ```
 FOR STEPS 3 and 4 , copy and paste the following code into your activity or fragment
