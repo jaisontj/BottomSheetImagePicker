@@ -7,10 +7,14 @@ Using Gradle
 
 ```
 repositories {
-    jcenter()
+	...
+	maven { url "https://jitpack.io" }
 }
+	
 
-compile 'com.jaison:bsimagepicker:0.1'
+dependencies {
+	compile 'com.github.jaisontj:BottomSheetImagePicker:v1.0'
+}
 ```
 
 # Usage 
