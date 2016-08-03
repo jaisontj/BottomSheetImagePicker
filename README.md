@@ -41,6 +41,21 @@ Make sure to call the destroy method inside of the onDestroy method of the activ
 
 EXTRA :
 
+There are three types/modes which can be set for the BottomSheetImagePicker :
+
+OPTION 1 - Camera & Gallery (BOTH)
+OPTION 2 - ONLY CAMERA (CAMERA)
+OPTION 3 - ONLY GALLERY (GALLERY)
+
+These can be accessed by using the following:
+
+```
+BottomSheetImagePicker.getInstance().showImagePicker(BottomSheetImagePicker.PickerType,Activity,BottomSheetLayout,BottomSheetImagePicker.Listener)
+```
+
+
+BOILER PLATE CODE :
+
 ```
 FOR STEPS 3 and 4 , copy and paste the following code into your activity or fragment
 
@@ -65,7 +80,6 @@ compile 'com.flipboard:bottomsheet-core:1.5.0'
 compile 'com.flipboard:bottomsheet-commons:1.5.0'
 compile 'com.github.bumptech.glide:glide:3.7.0'
 ```
-
 
 #Contribution 
 
