@@ -4,6 +4,7 @@ import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -13,6 +14,7 @@ import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.AlertDialog;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -52,7 +54,6 @@ import java.util.Locale;
  * BottomSheet
  * compile 'com.flipboard:bottomsheet-core:1.5.0'
  * compile 'com.flipboard:bottomsheet-commons:1.5.0'
- * compile 'com.github.bumptech.glide:glide:3.7.0'
  */
 public class BottomSheetImagePicker {
 
@@ -63,6 +64,8 @@ public class BottomSheetImagePicker {
     private static final int REQUEST_STORAGE = 0;
     private static final int REQUEST_IMAGE_CAPTURE = REQUEST_STORAGE + 1;
     private static final int REQUEST_LOAD_IMAGE = REQUEST_IMAGE_CAPTURE + 1;
+
+    private static final int REQUEST_CAMERA = 10;
 
     PickerType pickerType;
     Activity activity;
@@ -77,23 +80,6 @@ public class BottomSheetImagePicker {
         return instance;
     }
 
-    public void showImagePicker(Activity activity, BottomSheetLayout bottomSheet, Listener listener) {
-        showImagePicker(PickerType.BOTH,activity,bottomSheet,listener);
-    }
-
-    public void showImagePicker(PickerType pickerType, Activity activity, BottomSheetLayout bottomSheet, Listener listener) {
-        this.pickerType = pickerType;
-        this.activity = activity;
-        this.bottomSheet = bottomSheet;
-        this.listener = listener;
-        this.selectedImageUri = null;
-        if (checkNeedsPermission()) {
-            requestStoragePermission();
-        } else {
-            showSheetView();
-        }
-    }
-
     private Activity getActivity() {
         return activity;
     }
@@ -102,36 +88,20 @@ public class BottomSheetImagePicker {
         return activity;
     }
 
-    /**
-     * IMAGE PICKER METHODS
-     **/
 
-    private boolean checkNeedsPermission() {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED;
+    public void showImagePicker(Activity activity, BottomSheetLayout bottomSheet, Listener listener) {
+        showImagePicker(PickerType.BOTH, activity, bottomSheet, listener);
     }
 
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
-    private void requestStoragePermission() {
-        if (ActivityCompat.shouldShowRequestPermissionRationale(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-            ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_STORAGE);
-        } else {
-            // Eh, prompt anyway
-            ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_STORAGE);
-        }
-    }
-
-    @TargetApi(Build.VERSION_CODES.M)
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == REQUEST_STORAGE) {
-            if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                showSheetView();
-            } else {
-                // Permission denied
-                Toast.makeText(getActivity(), "Sheet is useless without access to external storage :/", Toast.LENGTH_SHORT).show();
-            }
-        } else {
-            activity.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        }
+    public void showImagePicker(PickerType pickerType, Activity activity, BottomSheetLayout bottomSheet, Listener listener) {
+        this.pickerType = pickerType;
+        this.activity = activity;
+        this.bottomSheet = bottomSheet;
+        this.listener = listener;
+        this.selectedImageUri = null;
+        if (checkStoragePermission()) {
+            requestStoragePermission();
+        } else showSheetView();
     }
 
     /**
@@ -238,6 +208,14 @@ public class BottomSheetImagePicker {
      * @see {@link #createImageFile()}
      */
     private void dispatchTakePictureIntent() {
+        //checking if camera permission is required
+        if (checkCameraPermission()) {
+            requestCameraPermission();
+        } else startCameraActivity();
+
+    }
+
+    private void startCameraActivity() {
         Intent takePictureIntent = createCameraIntent();
         // Ensure that there's a camera activity to handle the intent
         if (takePictureIntent != null) {
@@ -267,19 +245,8 @@ public class BottomSheetImagePicker {
 
             if (selectedImageUri != null) {
                 listener.onImageArrived(selectedImageUri);
-            } else {
-                genericError();
             }
         }
-    }
-
-
-    private void genericError() {
-        genericError(null);
-    }
-
-    private void genericError(String message) {
-        Toast.makeText(getContext(), message == null ? "Something went wrong." : message, Toast.LENGTH_SHORT).show();
     }
 
     public interface Listener {
@@ -291,5 +258,109 @@ public class BottomSheetImagePicker {
         this.activity = null;
         this.bottomSheet = null;
         this.listener = null;
+    }
+
+
+    /**
+     * PERMISSIONS
+     **/
+
+    private boolean checkStoragePermission() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED;
+    }
+
+
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+    private void requestStoragePermission() {
+        ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_STORAGE);
+    }
+
+    public boolean checkCameraPermission() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED;
+    }
+
+    @TargetApi(Build.VERSION_CODES.M)
+    private void requestCameraPermission() {
+        ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.CAMERA}, REQUEST_CAMERA);
+    }
+
+    @TargetApi(Build.VERSION_CODES.M)
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_STORAGE:
+                if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    showSheetView();
+                } else {
+                    // Permission denied
+
+                    //Check if the user has opted for the Never Show Again flag
+                    if (!ActivityCompat.shouldShowRequestPermissionRationale(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                        showMessageOKCancel("Levo only accesses your storage to show your photos here.But you have denied permission to it. Please enable it in Settings>Apps>Levo>Permissions>Storage",
+                                new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+
+                                    }
+                                });
+                    } else
+                        showMessageOKCancel("Levo only accesses your storage to show your photos here. Would you like to try again?",
+                                new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        requestStoragePermission();
+                                    }
+                                });
+                }
+                break;
+            case REQUEST_CAMERA:
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    startCameraActivity();
+                } else {
+                    //Check if the user has opted for the Never Show Again flag
+                    if (!ActivityCompat.shouldShowRequestPermissionRationale(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                        showMessageOKCancel("You cannot take a picture unless you provide Levo with the permission to use the Camera.But you have denied permission to it. Please enable it in Settings>Apps>Levo>Permissions>Camera",
+                                new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+
+                                    }
+                                });
+                    } else
+                        showMessageOKCancel("You cannot take a picture unless you provide Levo with the permission to use the Camera. Would you like to try again?",
+                                new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        requestCameraPermission();
+                                    }
+                                });
+                }
+                break;
+            default:
+                activity.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
+    }
+
+    /**
+     * ERROR AND DIALOGS
+     **/
+
+    private void genericError() {
+        genericError(null);
+    }
+
+    private void genericError(String message) {
+        if (getContext() != null)
+            Toast.makeText(getContext(), message == null ? "Something went wrong." : message, Toast.LENGTH_SHORT).show();
+    }
+
+
+    private void showMessageOKCancel(String message, DialogInterface.OnClickListener okListener) {
+        new AlertDialog.Builder(getActivity())
+                .setMessage(message)
+                .setPositiveButton("OK", okListener)
+                .setNegativeButton("Cancel", null)
+                .create()
+                .show();
     }
 }

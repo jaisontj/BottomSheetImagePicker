@@ -3,7 +3,9 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion 23
     buildToolsVersion "23.0.3"
-
+    dataBinding {
+        enabled = true
+    }
     defaultConfig {
         applicationId "com.jaison.librarytestapplication"
         minSdkVersion 15
@@ -26,5 +28,4 @@ dependencies {
     compile 'com.android.support:design:23.4.0'
 
     compile project(':bsimagepicker')
-
 }
